@@ -1,0 +1,30 @@
+services:
+  # Node.js Backend
+  - type: web
+    name: hearme-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node src/index.js
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 10000
+
+  # Python FastAPI Chatbot
+  - type: web
+    name: hearme-chatbot
+    runtime: python
+    rootDir: chatbot
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-20250514
