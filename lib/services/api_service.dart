@@ -66,7 +66,15 @@ class ApiService {
   }
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
-    final body = jsonDecode(response.body);
+    dynamic body;
+    try {
+      body = jsonDecode(response.body);
+    } catch (_) {
+      throw ApiException(
+        'Server unreachable or returned invalid response',
+        statusCode: response.statusCode,
+      );
+    }
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body is Map<String, dynamic> ? body : {'data': body};
     }

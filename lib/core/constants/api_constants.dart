@@ -1,10 +1,9 @@
 class ApiConstants {
-  // Node.js backend (replace with your deployed URL)
-  static const String baseUrl = 'https://YOUR-NODEJS-SERVER.onrender.com/api';
+  // Node.js backend
+  static const String baseUrl = 'http://10.1.231.224:5000/api';
 
-  // Python FastAPI chatbot server (replace with your deployed URL)
-  static const String chatbotBaseUrl =
-      'https://YOUR-CHATBOT-SERVER.onrender.com';
+  // Python FastAPI chatbot server
+  static const String chatbotBaseUrl = 'http://10.1.231.224:8000';
 
   // Auth
   static const String register = '/auth/register';

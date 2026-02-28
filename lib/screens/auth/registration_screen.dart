@@ -341,11 +341,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       const SizedBox(height: AppTheme.spacingMedium),
 
-      AuthTextField(
-        controller: _dobController,
-        hintText: AppStrings.get('date_of_birth', lang),
-        prefixIcon: Icons.calendar_today_outlined,
-        keyboardType: TextInputType.datetime,
+      GestureDetector(
+        onTap: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: DateTime(2000, 1, 1),
+            firstDate: DateTime(1920),
+            lastDate: DateTime.now(),
+          );
+          if (picked != null) {
+            _dobController.text =
+                '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+          }
+        },
+        child: AbsorbPointer(
+          child: AuthTextField(
+            controller: _dobController,
+            hintText: AppStrings.get('date_of_birth', lang),
+            prefixIcon: Icons.calendar_today_outlined,
+          ),
+        ),
       ).animate().fadeIn(delay: 475.ms),
 
       const SizedBox(height: AppTheme.spacingMedium),
