@@ -17,6 +17,7 @@ import 'package:hearme/screens/rewards/rewards_screen.dart';
 import 'package:hearme/screens/rewards/redeemed_rewards_screen.dart';
 import 'package:hearme/screens/history/chat_history_screen.dart';
 import 'package:hearme/screens/history/mindspace_history_screen.dart';
+import 'package:hearme/screens/profile/profile_screen.dart';
 import 'package:hearme/screens/welcome/welcome_screen.dart';
 
 class PatientDashboardScreen extends StatelessWidget {
@@ -460,6 +461,28 @@ class PatientDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.spacingLarge),
             const Divider(),
+
+            // Profile
+            ListTile(
+              leading: Icon(
+                Icons.person_outline_rounded,
+                color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+              ),
+              title: Text(
+                'Profile',
+                style: TextStyle(
+                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
 
             // Language picker
             ListTile(

@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:hearme/models/user_model.dart';
 import 'package:hearme/services/auth_service.dart';
+import 'package:hearme/services/api_service.dart';
+import 'package:hearme/core/constants/api_constants.dart';
 
 class AuthProvider extends ChangeNotifier {
   static const String _tokenKey = 'auth_token';
@@ -82,6 +84,17 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<void> refreshUser() async {
+    try {
+      final data = await ApiService.get(ApiConstants.profile);
+      _user = UserModel.fromJson(data);
+      await _saveToStorage();
+      notifyListeners();
+    } catch (_) {
+      // Silently fail — keep existing user data
     }
   }
 

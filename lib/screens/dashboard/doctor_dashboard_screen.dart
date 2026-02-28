@@ -9,7 +9,9 @@ import 'package:hearme/core/providers/auth_provider.dart';
 import 'package:hearme/core/widgets/glass_card.dart';
 import 'package:hearme/core/widgets/theme_toggle_button.dart';
 import 'package:hearme/screens/notifications/notifications_screen.dart';
+import 'package:hearme/screens/doctor/patients_list_screen.dart';
 import 'package:hearme/screens/linking/my_code_screen.dart';
+import 'package:hearme/screens/profile/profile_screen.dart';
 import 'package:hearme/screens/welcome/welcome_screen.dart';
 
 class DoctorDashboardScreen extends StatelessWidget {
@@ -114,6 +116,26 @@ class DoctorDashboardScreen extends StatelessWidget {
                         builder: (_) => const NotificationsScreen()),
                   ),
                 ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
+
+                const SizedBox(height: AppTheme.spacingMedium),
+
+                _buildTile(
+                  context: context,
+                  title: 'My Patients',
+                  subtitle: 'View patient health data',
+                  icon: Icons.people_rounded,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4ECDC4), Color(0xFF44A08D)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  isDark: isDark,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const PatientsListScreen()),
+                  ),
+                ).animate().fadeIn(delay: 275.ms).slideX(begin: -0.1),
 
                 const SizedBox(height: AppTheme.spacingMedium),
 
@@ -252,6 +274,28 @@ class DoctorDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.spacingLarge),
             const Divider(),
+
+            // Profile
+            ListTile(
+              leading: Icon(
+                Icons.person_outline_rounded,
+                color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+              ),
+              title: Text(
+                'Profile',
+                style: TextStyle(
+                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
 
             ListTile(
               leading: Icon(

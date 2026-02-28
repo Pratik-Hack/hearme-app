@@ -14,6 +14,10 @@ class ApiConstants {
 
   // Doctors
   static const String doctorPatients = '/doctors/patients';
+  static String doctorPatientMindspace(String patientId) =>
+      '/doctors/patients/$patientId/mindspace';
+  static String doctorPatientChats(String patientId) =>
+      '/doctors/patients/$patientId/chats';
 
   // Patients
   static const String patientLink = '/patients/link';
