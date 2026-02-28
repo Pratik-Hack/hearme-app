@@ -119,6 +119,9 @@ async def chat(req: ChatRequest):
         history = get_session_history(req.session_id)
         lang_instruction = LANGUAGE_INSTRUCTIONS.get(req.language, LANGUAGE_INSTRUCTIONS["en"])
 
+        # Escape curly braces in JSON so LangChain doesn't treat them as template vars
+        medical_json = json.dumps(MEDICAL_DATA, indent=2).replace("{", "{{").replace("}", "}}")
+
         system_template = f"""You are a highly capable, conversational medical triage assistant for HearMe.
 Your role is to help users understand their symptoms, provide general health guidance, and advise when to see a doctor.
 
@@ -129,10 +132,11 @@ IMPORTANT RULES:
 4. {lang_instruction}
 
 MEDICAL KNOWLEDGE BASE:
-{json.dumps(MEDICAL_DATA, indent=2)}
+{medical_json}
 """
         if req.medical_context:
-            system_template += f"\n\nPatient Context: {req.medical_context}"
+            escaped_context = req.medical_context.replace("{", "{{").replace("}", "}}")
+            system_template += f"\n\nPatient Context: {escaped_context}"
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_template),
@@ -164,6 +168,8 @@ async def chat_stream(req: ChatRequest):
             history = get_session_history(req.session_id)
             lang_instruction = LANGUAGE_INSTRUCTIONS.get(req.language, LANGUAGE_INSTRUCTIONS["en"])
 
+            medical_json = json.dumps(MEDICAL_DATA, indent=2).replace("{", "{{").replace("}", "}}")
+
             system_template = f"""You are a highly capable, conversational medical triage assistant for HearMe.
 Your role is to help users understand their symptoms, provide general health guidance, and advise when to see a doctor.
 
@@ -174,10 +180,11 @@ IMPORTANT RULES:
 4. {lang_instruction}
 
 MEDICAL KNOWLEDGE BASE:
-{json.dumps(MEDICAL_DATA, indent=2)}
+{medical_json}
 """
             if req.medical_context:
-                system_template += f"\n\nPatient Context: {req.medical_context}"
+                escaped_context = req.medical_context.replace("{", "{{").replace("}", "}}")
+                system_template += f"\n\nPatient Context: {escaped_context}"
 
             prompt = ChatPromptTemplate.from_messages([
                 ("system", system_template),

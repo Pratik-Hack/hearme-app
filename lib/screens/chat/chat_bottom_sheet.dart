@@ -113,13 +113,16 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
       maxChildSize: 0.95,
       minChildSize: 0.5,
       builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.darkBackground : AppTheme.background,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkBackground : AppTheme.background,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
             children: [
               // Handle bar
               Container(
@@ -228,6 +231,7 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
               // Input
               _buildInput(isDark, lang),
             ],
+          ),
           ),
         );
       },

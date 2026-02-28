@@ -137,96 +137,208 @@ class PatientDashboardScreen extends StatelessWidget {
 
                 const SizedBox(height: AppTheme.spacingLarge),
 
-                // Navigation tiles grid
+                // Content
                 Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: AppTheme.spacingMedium,
-                    crossAxisSpacing: AppTheme.spacingMedium,
-                    childAspectRatio: 1.0,
-                    children: [
-                      _buildTile(
-                        context: context,
-                        title: AppStrings.get('mind_space', lang),
-                        subtitle: AppStrings.get('share_your_day', lang),
-                        icon: Icons.mic_rounded,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7C4DFF), Color(0xFF536DFE)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Hero: Mind Space
+                        GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const MentalHealthScreen()),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF7C4DFF), Color(0xFF536DFE)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusLarge),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF7C4DFF)
+                                      .withValues(alpha: 0.35),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        AppStrings.get('mind_space', lang),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        AppStrings.get('share_your_day', lang),
+                                        style: TextStyle(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.85),
+                                          fontSize: 14,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 14),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.mic_rounded,
+                                                color: Colors.white, size: 16),
+                                            SizedBox(width: 6),
+                                            Text(
+                                              'Start Recording',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: 72,
+                                  height: 72,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color:
+                                        Colors.white.withValues(alpha: 0.2),
+                                  ),
+                                  child: const Icon(
+                                    Icons.mic_rounded,
+                                    color: Colors.white,
+                                    size: 36,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                            .animate()
+                            .fadeIn(delay: 100.ms)
+                            .slideY(begin: 0.15, duration: 400.ms),
+
+                        const SizedBox(height: AppTheme.spacingMedium),
+
+                        // Grid of other tiles
+                        GridView.count(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: AppTheme.spacingMedium,
+                          crossAxisSpacing: AppTheme.spacingMedium,
+                          childAspectRatio: 1.15,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            _buildTile(
+                              context: context,
+                              title: AppStrings.get('chat_with_hearme', lang),
+                              subtitle: 'AI Medical Assistant',
+                              icon: Icons.smart_toy_rounded,
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF4ECDC4),
+                                  Color(0xFF44A08D),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onTap: () => showChatBottomSheet(context),
+                              delay: 200,
+                            ),
+                            _buildTile(
+                              context: context,
+                              title: AppStrings.get('mind_rewards', lang),
+                              subtitle: '${coins.coins} coins',
+                              icon: Icons.stars_rounded,
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFFFFD700),
+                                  Color(0xFFFFA000),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const RewardsScreen()),
+                              ),
+                              delay: 300,
+                            ),
+                            _buildTile(
+                              context: context,
+                              title: AppStrings.get('my_code', lang),
+                              subtitle: auth.user?.uniqueCode ?? 'HM-XXXX',
+                              icon: Icons.qr_code_rounded,
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFFFF6B35),
+                                  Color(0xFFFF8C61),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const MyCodeScreen()),
+                              ),
+                              delay: 400,
+                            ),
+                            _buildTile(
+                              context: context,
+                              title: AppStrings.get('link_doctor', lang),
+                              subtitle: 'Share health data',
+                              icon: Icons.link_rounded,
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF667EEA),
+                                  Color(0xFF764BA2),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const LinkDoctorScreen()),
+                              ),
+                              delay: 500,
+                            ),
+                          ],
                         ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const MentalHealthScreen()),
-                        ),
-                        delay: 100,
-                      ),
-                      _buildTile(
-                        context: context,
-                        title: AppStrings.get('chat_with_hearme', lang),
-                        subtitle: 'AI Medical Assistant',
-                        icon: Icons.smart_toy_rounded,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF4ECDC4), Color(0xFF44A08D)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => showChatBottomSheet(context),
-                        delay: 200,
-                      ),
-                      _buildTile(
-                        context: context,
-                        title: AppStrings.get('my_code', lang),
-                        subtitle: auth.user?.uniqueCode ?? 'HM-XXXX',
-                        icon: Icons.qr_code_rounded,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF6B35), Color(0xFFFF8C61)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const MyCodeScreen()),
-                        ),
-                        delay: 400,
-                      ),
-                      _buildTile(
-                        context: context,
-                        title: AppStrings.get('link_doctor', lang),
-                        subtitle: 'Share health data',
-                        icon: Icons.link_rounded,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const LinkDoctorScreen()),
-                        ),
-                        delay: 500,
-                      ),
-                      _buildTile(
-                        context: context,
-                        title: AppStrings.get('mind_rewards', lang),
-                        subtitle: '${coins.coins} coins',
-                        icon: Icons.stars_rounded,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const RewardsScreen()),
-                        ),
-                        delay: 600,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

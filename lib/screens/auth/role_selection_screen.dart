@@ -25,10 +25,17 @@ class RoleSelectionScreen extends StatelessWidget {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacingLarge),
-            child: Column(
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - AppTheme.spacingLarge * 2,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                 // Header
                 Row(
                   children: [
@@ -139,6 +146,9 @@ class RoleSelectionScreen extends StatelessWidget {
                 ).animate().fadeIn(delay: 600.ms),
               ],
             ),
+          ),
+        );
+            },
           ),
         ),
       ),

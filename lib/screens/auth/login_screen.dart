@@ -85,12 +85,19 @@ class _LoginScreenState extends State<LoginScreen> {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacingLarge),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - AppTheme.spacingLarge * 2,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                   // Header
                   Row(
                     children: [
@@ -258,6 +265,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
+          ),
+        );
+            },
           ),
         ),
       ),
