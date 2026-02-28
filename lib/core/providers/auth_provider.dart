@@ -14,35 +14,43 @@ class AuthProvider extends ChangeNotifier {
   String? _token;
   UserModel? _user;
   bool _isLoading = false;
+  bool _initialized = false;
   String? _error;
-
-  AuthProvider() {
-    _loadFromStorage();
-  }
 
   String? get token => _token;
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
+  bool get initialized => _initialized;
   String? get error => _error;
   bool get isAuthenticated => _token != null && _user != null;
   bool get isPatient => _user?.isPatient ?? false;
   bool get isDoctor => _user?.isDoctor ?? false;
 
-  Future<void> _loadFromStorage() async {
+  /// Call this once at app startup (from splash screen).
+  /// Returns true if a valid session was restored.
+  Future<bool> tryRestoreSession() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString(_tokenKey);
     final userJson = prefs.getString(_userKey);
 
     if (token != null && userJson != null) {
-      // Check JWT expiry
       if (JwtDecoder.isExpired(token)) {
         await _clearStorage();
-        return;
+        _initialized = true;
+        notifyListeners();
+        return false;
       }
       _token = token;
       _user = UserModel.fromJson(jsonDecode(userJson));
+      ApiService.setToken(_token);
+      _initialized = true;
       notifyListeners();
+      return true;
     }
+
+    _initialized = true;
+    notifyListeners();
+    return false;
   }
 
   Future<bool> login(String email, String password) async {
@@ -54,6 +62,7 @@ class AuthProvider extends ChangeNotifier {
       final result = await AuthService.login(email, password);
       _token = result['token'];
       _user = UserModel.fromJson(result['user']);
+      ApiService.setToken(_token);
       await _saveToStorage();
       _isLoading = false;
       notifyListeners();
@@ -75,6 +84,7 @@ class AuthProvider extends ChangeNotifier {
       final result = await AuthService.register(data);
       _token = result['token'];
       _user = UserModel.fromJson(result['user']);
+      ApiService.setToken(_token);
       await _saveToStorage();
       _isLoading = false;
       notifyListeners();
@@ -102,6 +112,7 @@ class AuthProvider extends ChangeNotifier {
     _token = null;
     _user = null;
     _error = null;
+    ApiService.setToken(null);
     await _clearStorage();
     notifyListeners();
   }

@@ -5,12 +5,9 @@ import 'package:hearme/core/theme/app_theme.dart';
 import 'package:hearme/core/theme/theme_provider.dart';
 import 'package:hearme/core/locale/app_strings.dart';
 import 'package:hearme/core/locale/locale_provider.dart';
-import 'package:hearme/core/providers/auth_provider.dart';
 import 'package:hearme/core/widgets/animated_button.dart';
 import 'package:hearme/core/widgets/theme_toggle_button.dart';
 import 'package:hearme/screens/auth/role_selection_screen.dart';
-import 'package:hearme/screens/dashboard/patient_dashboard_screen.dart';
-import 'package:hearme/screens/dashboard/doctor_dashboard_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -20,28 +17,6 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuth();
-  }
-
-  void _checkAuth() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      if (auth.isAuthenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => auth.isDoctor
-                ? const DoctorDashboardScreen()
-                : const PatientDashboardScreen(),
-          ),
-        );
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;

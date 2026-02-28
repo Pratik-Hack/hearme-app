@@ -7,7 +7,7 @@ import 'package:hearme/core/theme/theme_provider.dart';
 import 'package:hearme/core/locale/locale_provider.dart';
 import 'package:hearme/core/providers/auth_provider.dart';
 import 'package:hearme/core/providers/coins_provider.dart';
-import 'package:hearme/screens/welcome/welcome_screen.dart';
+import 'package:hearme/screens/splash/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,7 +60,7 @@ class HearMeApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const WelcomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
