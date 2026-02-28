@@ -15,6 +15,8 @@ import 'package:hearme/screens/linking/my_code_screen.dart';
 import 'package:hearme/screens/linking/link_doctor_screen.dart';
 import 'package:hearme/screens/rewards/rewards_screen.dart';
 import 'package:hearme/screens/rewards/redeemed_rewards_screen.dart';
+import 'package:hearme/screens/history/chat_history_screen.dart';
+import 'package:hearme/screens/history/mindspace_history_screen.dart';
 import 'package:hearme/screens/welcome/welcome_screen.dart';
 
 class PatientDashboardScreen extends StatelessWidget {
@@ -491,6 +493,50 @@ class PatientDashboardScreen extends StatelessWidget {
               ),
             ),
 
+            // MindSpace History
+            ListTile(
+              leading: Icon(
+                Icons.psychology_rounded,
+                color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+              ),
+              title: Text(
+                'MindSpace History',
+                style: TextStyle(
+                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const MindSpaceHistoryScreen()),
+                );
+              },
+            ),
+
+            // Chat History
+            ListTile(
+              leading: Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+              ),
+              title: Text(
+                'Chat History',
+                style: TextStyle(
+                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ChatHistoryScreen()),
+                );
+              },
+            ),
+
             // Redeemed Rewards
             ListTile(
               leading: Icon(
@@ -504,7 +550,7 @@ class PatientDashboardScreen extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.pop(context); // Close drawer
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(

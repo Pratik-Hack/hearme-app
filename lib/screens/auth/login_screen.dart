@@ -85,38 +85,48 @@ class _LoginScreenState extends State<LoginScreen> {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(AppTheme.spacingLarge),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - AppTheme.spacingLarge * 2,
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                  // Header
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Icon(
-                          Icons.arrow_back_rounded,
-                          color: isDark
-                              ? AppTheme.darkTextLight
-                              : AppTheme.textDark,
-                        ),
+          child: Column(
+            children: [
+              // Header - pinned at top
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingSmall,
+                  vertical: AppTheme.spacingSmall,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        Icons.arrow_back_rounded,
+                        color: isDark
+                            ? AppTheme.darkTextLight
+                            : AppTheme.textDark,
                       ),
-                      const Spacer(),
-                      const ThemeToggleButton(),
-                    ],
-                  ),
+                    ),
+                    const Spacer(),
+                    const ThemeToggleButton(),
+                  ],
+                ),
+              ),
 
-                  const SizedBox(height: AppTheme.spacingXXLarge),
-
+              // Scrollable centered content
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingLarge,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                   // Logo
                   Container(
                     width: 80,
@@ -262,12 +272,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ).animate().fadeIn(delay: 700.ms),
-                ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ),
-        );
-            },
+            ],
           ),
         ),
       ),

@@ -32,4 +32,8 @@ class ApiConstants {
   static const String rewardsStats = '/rewards/stats';
   static const String rewardsRedeemed = '/rewards/redeemed';
   static const String rewardsMindSpace = '/rewards/mindspace';
+
+  // History
+  static const String historyChats = '/history/chats';
+  static const String historyMindspace = '/history/mindspace';
 }

@@ -55,26 +55,35 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacingLarge),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top -
-                    MediaQuery.of(context).padding.bottom -
-                    48,
+          child: Column(
+            children: [
+              // Theme toggle - pinned at top
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingLarge,
+                  vertical: AppTheme.spacingSmall,
+                ),
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: const ThemeToggleButton(),
+                ).animate().fadeIn(delay: 200.ms),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Theme toggle
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: const ThemeToggleButton(),
-                  ).animate().fadeIn(delay: 200.ms),
 
-                  const SizedBox(height: AppTheme.spacingXXLarge),
-
+              // Scrollable centered content
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingLarge,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
                   // Logo
                   Container(
                     width: 120,
@@ -175,9 +184,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.3),
 
                   const SizedBox(height: AppTheme.spacingLarge),
-                ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

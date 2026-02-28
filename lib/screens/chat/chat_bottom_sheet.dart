@@ -8,6 +8,8 @@ import 'package:hearme/core/locale/locale_provider.dart';
 import 'package:hearme/core/providers/coins_provider.dart';
 import 'package:hearme/core/widgets/glass_card.dart';
 import 'package:hearme/services/chat_service.dart';
+import 'package:hearme/services/api_service.dart';
+import 'package:hearme/core/constants/api_constants.dart';
 
 void showChatBottomSheet(BuildContext context) {
   showModalBottomSheet(
@@ -44,9 +46,33 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
 
   @override
   void dispose() {
+    _saveChatSession();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveChatSession() async {
+    // Only save if user sent at least one message
+    if (_messages.length <= 1) return;
+    try {
+      // Use the first user message as the title
+      final firstUserMsg = _messages.firstWhere(
+        (m) => m['role'] == 'user',
+        orElse: () => {'content': 'Chat'},
+      );
+      final title = (firstUserMsg['content'] as String).length > 50
+          ? '${(firstUserMsg['content'] as String).substring(0, 50)}...'
+          : firstUserMsg['content'] as String;
+
+      await ApiService.post(ApiConstants.historyChats, body: {
+        'sessionId': _sessionId,
+        'title': title,
+        'messages': _messages
+            .map((m) => {'role': m['role'], 'content': m['content']})
+            .toList(),
+      });
+    } catch (_) {}
   }
 
   void _scrollToBottom() {

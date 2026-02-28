@@ -25,19 +25,15 @@ class RoleSelectionScreen extends StatelessWidget {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(AppTheme.spacingLarge),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - AppTheme.spacingLarge * 2,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                // Header
-                Row(
+          child: Column(
+            children: [
+              // Header - pinned at top
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingSmall,
+                  vertical: AppTheme.spacingSmall,
+                ),
+                child: Row(
                   children: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
@@ -52,9 +48,23 @@ class RoleSelectionScreen extends StatelessWidget {
                     const ThemeToggleButton(),
                   ],
                 ),
+              ),
 
-                const SizedBox(height: AppTheme.spacingXXLarge),
-
+              // Scrollable centered content
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingLarge,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
                 // Title
                 Text(
                   'Choose Your Role',
@@ -144,11 +154,14 @@ class RoleSelectionScreen extends StatelessWidget {
                     ),
                   ],
                 ).animate().fadeIn(delay: 600.ms),
-              ],
-            ),
-          ),
-        );
-            },
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
