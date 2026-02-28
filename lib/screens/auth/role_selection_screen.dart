@@ -25,7 +25,7 @@ class RoleSelectionScreen extends StatelessWidget {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppTheme.spacingLarge),
             child: Column(
               children: [
@@ -92,7 +92,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   context: context,
                   role: 'doctor',
                   title: AppStrings.get('doctor', lang),
-                  subtitle: 'Monitor your patients\' mental health & receive vitals alerts',
+                  subtitle: 'Monitor your patients\' mental health reports',
                   icon: Icons.medical_services_rounded,
                   gradient: const LinearGradient(
                     colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
@@ -102,7 +102,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   isDark: isDark,
                 ).animate().fadeIn(delay: 450.ms).slideX(begin: 0.2),
 
-                const Spacer(),
+                const SizedBox(height: AppTheme.spacingXXLarge),
 
                 // Login link
                 Row(

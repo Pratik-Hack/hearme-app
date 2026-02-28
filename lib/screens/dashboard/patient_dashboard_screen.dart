@@ -11,7 +11,6 @@ import 'package:hearme/core/widgets/glass_card.dart';
 import 'package:hearme/core/widgets/theme_toggle_button.dart';
 import 'package:hearme/screens/mental_health/mental_health_screen.dart';
 import 'package:hearme/screens/chat/chat_bottom_sheet.dart';
-import 'package:hearme/screens/alerts/patient_alerts_screen.dart';
 import 'package:hearme/screens/linking/my_code_screen.dart';
 import 'package:hearme/screens/linking/link_doctor_screen.dart';
 import 'package:hearme/screens/rewards/rewards_screen.dart';
@@ -174,23 +173,6 @@ class PatientDashboardScreen extends StatelessWidget {
                         ),
                         onTap: () => showChatBottomSheet(context),
                         delay: 200,
-                      ),
-                      _buildTile(
-                        context: context,
-                        title: AppStrings.get('health_alerts', lang),
-                        subtitle: 'Vitals monitoring',
-                        icon: Icons.notifications_active_rounded,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF5252), Color(0xFFFF1744)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const PatientAlertsScreen()),
-                        ),
-                        delay: 300,
                       ),
                       _buildTile(
                         context: context,

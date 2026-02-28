@@ -64,32 +64,29 @@ class _ChatScreenState extends State<ChatScreen> {
     final lang = Provider.of<LocaleProvider>(context, listen: false).languageCode;
 
     try {
-      String response = '';
-      _messages.add({'role': 'bot', 'content': ''});
-
-      await for (final token in ChatService.sendMessageStream(
+      final response = await ChatService.sendMessage(
         text,
         sessionId: _sessionId,
         language: lang,
-      )) {
-        response += token;
-        setState(() {
-          _messages.last['content'] = response;
-        });
-        _scrollToBottom();
-      }
+      );
 
-      setState(() => _isTyping = false);
+      setState(() {
+        _messages.add({'role': 'bot', 'content': response});
+        _isTyping = false;
+      });
+      _scrollToBottom();
 
       // Award chat coins
+      if (!mounted) return;
       final coins = Provider.of<CoinsProvider>(context, listen: false);
       await coins.addChatCoins();
     } catch (e) {
       setState(() {
         _isTyping = false;
-        if (_messages.last['content'] == '') {
-          _messages.last['content'] = 'Sorry, something went wrong. Please try again.';
-        }
+        _messages.add({
+          'role': 'bot',
+          'content': 'Sorry, something went wrong. Please try again.',
+        });
       });
     }
   }
@@ -152,7 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(AppTheme.spacingMedium),
-                itemCount: _messages.length + (_isTyping && _messages.last['content'] == '' ? 1 : 0),
+                itemCount: _messages.length + (_isTyping ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index >= _messages.length) {
                     return _buildTypingIndicator(isDark);

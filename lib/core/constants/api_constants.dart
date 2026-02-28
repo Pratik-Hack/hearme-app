@@ -27,15 +27,4 @@ class ApiConstants {
 
   // Rewards
   static const String rewardsRedeem = '/rewards/redeem';
-
-  // Vitals Monitoring (Python chatbot server)
-  static const String vitalsStart = '/vitals/start';
-  static const String vitalsTick = '/vitals/tick';
-  static const String vitalsDoctorAlerts = '/vitals/alerts/doctor';
-  static const String vitalsPatientAlerts = '/vitals/alerts/patient';
-  static const String vitalsSession = '/vitals/session';
-
-  // Vitals Summaries (Node.js server)
-  static const String vitalsSummary = '/vitals/summary';
-  static const String vitalsSummaries = '/vitals/summaries';
 }

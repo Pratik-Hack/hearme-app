@@ -100,7 +100,7 @@ class DoctorDashboardScreen extends StatelessWidget {
                 _buildTile(
                   context: context,
                   title: AppStrings.get('patient_notifications', lang),
-                  subtitle: 'View vitals & mental health reports',
+                  subtitle: 'View mental health reports',
                   icon: Icons.notifications_active_rounded,
                   gradient: const LinearGradient(
                     colors: [Color(0xFF7C4DFF), Color(0xFF536DFE)],

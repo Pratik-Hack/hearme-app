@@ -55,119 +55,128 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppTheme.spacingLarge),
-            child: Column(
-              children: [
-                // Theme toggle
-                Align(
-                  alignment: Alignment.topRight,
-                  child: const ThemeToggleButton(),
-                ).animate().fadeIn(delay: 200.ms),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    48,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Theme toggle
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: const ThemeToggleButton(),
+                  ).animate().fadeIn(delay: 200.ms),
 
-                const Spacer(flex: 2),
+                  const SizedBox(height: AppTheme.spacingXXLarge),
 
-                // Logo
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: AppTheme.orangeGradient,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryOrange.withValues(alpha: 0.3),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.favorite_rounded,
-                    color: Colors.white,
-                    size: 60,
-                  ),
-                )
-                    .animate()
-                    .scale(
-                      begin: const Offset(0.5, 0.5),
-                      duration: 600.ms,
-                      curve: Curves.elasticOut,
-                    )
-                    .fadeIn(),
-
-                const SizedBox(height: AppTheme.spacingLarge),
-
-                // App name
-                Text(
-                  AppStrings.get('app_name', lang),
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
-                    letterSpacing: 1.2,
-                  ),
-                ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3),
-
-                const SizedBox(height: AppTheme.spacingSmall),
-
-                // Tagline
-                Text(
-                  AppStrings.get('your_mental_health_companion', lang),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppTheme.primaryOrange,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ).animate().fadeIn(delay: 400.ms),
-
-                const SizedBox(height: AppTheme.spacingLarge),
-
-                // Description
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
-                  child: Text(
-                    AppStrings.get('welcome_description', lang),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
-                      height: 1.5,
+                  // Logo
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: AppTheme.orangeGradient,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryOrange.withValues(alpha: 0.3),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                  ),
-                ).animate().fadeIn(delay: 500.ms),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      color: Colors.white,
+                      size: 60,
+                    ),
+                  )
+                      .animate()
+                      .scale(
+                        begin: const Offset(0.5, 0.5),
+                        duration: 600.ms,
+                        curve: Curves.elasticOut,
+                      )
+                      .fadeIn(),
 
-                const Spacer(flex: 2),
+                  const SizedBox(height: AppTheme.spacingLarge),
 
-                // Features row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildFeatureChip(Icons.smart_toy_rounded, 'AI Chat', isDark),
-                    _buildFeatureChip(Icons.mic_rounded, 'Mind Space', isDark),
-                    _buildFeatureChip(Icons.link_rounded, 'Connect', isDark),
-                  ],
-                ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
+                  // App name
+                  Text(
+                    AppStrings.get('app_name', lang),
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      letterSpacing: 1.2,
+                    ),
+                  ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3),
 
-                const Spacer(),
+                  const SizedBox(height: AppTheme.spacingSmall),
 
-                // Get Started button
-                AnimatedButton(
-                  text: AppStrings.get('get_started', lang),
-                  icon: Icons.arrow_forward_rounded,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const RoleSelectionScreen(),
+                  // Tagline
+                  Text(
+                    AppStrings.get('your_mental_health_companion', lang),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.primaryOrange,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ).animate().fadeIn(delay: 400.ms),
+
+                  const SizedBox(height: AppTheme.spacingLarge),
+
+                  // Description
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
+                    child: Text(
+                      AppStrings.get('welcome_description', lang),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                        height: 1.5,
                       ),
-                    );
-                  },
-                ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.3),
+                    ),
+                  ).animate().fadeIn(delay: 500.ms),
 
-                const SizedBox(height: AppTheme.spacingLarge),
-              ],
+                  const SizedBox(height: AppTheme.spacingXXLarge),
+
+                  // Features row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildFeatureChip(Icons.smart_toy_rounded, 'AI Chat', isDark),
+                      _buildFeatureChip(Icons.mic_rounded, 'Mind Space', isDark),
+                      _buildFeatureChip(Icons.link_rounded, 'Connect', isDark),
+                    ],
+                  ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
+
+                  const SizedBox(height: AppTheme.spacingXXLarge),
+
+                  // Get Started button
+                  AnimatedButton(
+                    text: AppStrings.get('get_started', lang),
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const RoleSelectionScreen(),
+                        ),
+                      );
+                    },
+                  ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.3),
+
+                  const SizedBox(height: AppTheme.spacingLarge),
+                ],
+              ),
             ),
           ),
         ),

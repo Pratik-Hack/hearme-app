@@ -5,12 +5,9 @@ import 'package:hearme/core/theme/app_theme.dart';
 import 'package:hearme/core/theme/theme_provider.dart';
 import 'package:hearme/core/locale/app_strings.dart';
 import 'package:hearme/core/locale/locale_provider.dart';
-import 'package:hearme/core/providers/auth_provider.dart';
 import 'package:hearme/core/providers/coins_provider.dart';
 import 'package:hearme/core/widgets/glass_card.dart';
 import 'package:hearme/services/chat_service.dart';
-import 'package:hearme/services/api_service.dart';
-import 'package:hearme/core/constants/api_constants.dart';
 
 void showChatBottomSheet(BuildContext context) {
   showModalBottomSheet(
@@ -34,8 +31,6 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
   final List<Map<String, dynamic>> _messages = [];
   bool _isTyping = false;
   String _sessionId = '';
-  String? _medicalContext;
-
   @override
   void initState() {
     super.initState();
@@ -45,23 +40,6 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
       'content':
           "Hello! I'm your HearMe medical assistant. I can help you understand your symptoms, provide general health guidance, and advise when to see a doctor. How can I help you today?",
     });
-    _loadMedicalSummary();
-  }
-
-  Future<void> _loadMedicalSummary() async {
-    try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      if (auth.token != null) {
-        ApiService.setToken(auth.token);
-        final response =
-            await ApiService.get(ApiConstants.patientMedicalSummary);
-        if (response['summary'] != null) {
-          _medicalContext = response['summary'].toString();
-        }
-      }
-    } catch (_) {
-      // Medical summary is optional
-    }
   }
 
   @override
@@ -98,33 +76,28 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
         Provider.of<LocaleProvider>(context, listen: false).languageCode;
 
     try {
-      String response = '';
-      _messages.add({'role': 'bot', 'content': ''});
-
-      await for (final token in ChatService.sendMessageStream(
+      final response = await ChatService.sendMessage(
         text,
         sessionId: _sessionId,
         language: lang,
-        medicalContext: _medicalContext,
-      )) {
-        response += token;
-        setState(() {
-          _messages.last['content'] = response;
-        });
-        _scrollToBottom();
-      }
+      );
 
-      setState(() => _isTyping = false);
+      setState(() {
+        _messages.add({'role': 'bot', 'content': response});
+        _isTyping = false;
+      });
+      _scrollToBottom();
 
+      if (!mounted) return;
       final coins = Provider.of<CoinsProvider>(context, listen: false);
       await coins.addChatCoins();
     } catch (e) {
       setState(() {
         _isTyping = false;
-        if (_messages.last['content'] == '') {
-          _messages.last['content'] =
-              'Sorry, something went wrong. Please try again.';
-        }
+        _messages.add({
+          'role': 'bot',
+          'content': 'Sorry, something went wrong. Please try again.',
+        });
       });
     }
   }
