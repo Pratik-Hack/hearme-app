@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:hearme/core/constants/api_constants.dart';
+import 'package:hearme/services/api_service.dart';
 
 class MentalHealthService {
+  /// Upload audio to the chatbot server for analysis
   static Future<Map<String, dynamic>> uploadAudio({
     required String filePath,
     required String patientId,
@@ -29,28 +31,26 @@ class MentalHealthService {
     throw Exception('Failed to analyze audio: ${response.body}');
   }
 
+  /// Fetch doctor notifications from Node.js backend (persisted in MongoDB)
   static Future<List<dynamic>> getNotifications(String doctorId) async {
-    final url = Uri.parse(
-        '${ApiConstants.chatbotBaseUrl}${ApiConstants.mentalHealthNotifications}/$doctorId');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['notifications'] ?? [];
-    }
-    throw Exception('Failed to fetch notifications');
+    final data = await ApiService.get(ApiConstants.mentalHealthNotifications);
+    return data['notifications'] ?? [];
   }
 
+  /// Fetch notifications for a specific patient (doctor view)
+  static Future<List<dynamic>> getPatientNotifications(String patientId) async {
+    final data = await ApiService.get(
+        '${ApiConstants.mentalHealthNotifications}/patient/$patientId');
+    return data['notifications'] ?? [];
+  }
+
+  /// Mark a notification as read
   static Future<void> markAsRead(String notificationId) async {
-    final url = Uri.parse(
-        '${ApiConstants.chatbotBaseUrl}${ApiConstants.mentalHealthNotifications}/$notificationId/read');
-    final response = await http.put(url);
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to mark as read');
-    }
+    await ApiService.put(
+        '${ApiConstants.mentalHealthNotifications}/$notificationId/read');
   }
 
+  /// Redeem a reward (uses chatbot server)
   static Future<Map<String, dynamic>> redeemReward({
     required String rewardType,
     String language = 'en',

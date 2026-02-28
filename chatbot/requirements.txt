@@ -5,4 +5,5 @@ langchain-groq
 python-dotenv
 python-multipart
 groq
+httpx
 anthropic

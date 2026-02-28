@@ -6,6 +6,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import Optional
 
+import httpx
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -46,9 +47,11 @@ llm_streaming = ChatGroq(
     streaming=True,
 )
 
+# ── Config ─────────────────────────────────────────────────────────────────
+BACKEND_URL = os.getenv("BACKEND_URL", "https://hearme-server.onrender.com/api")
+
 # ── In-memory stores ────────────────────────────────────────────────────────
 session_histories: dict[str, list] = {}
-mental_health_notifications: list[dict] = []
 
 # ── Medical Knowledge Base ──────────────────────────────────────────────────
 MEDICAL_DATA = {
@@ -287,19 +290,22 @@ Format as a professional clinical note. Respond in English."""
             elif any(w in report_lower for w in ["moderate urgency", "moderate", "concerning", "anxiety", "depression"]):
                 urgency = "moderate"
 
-            # Store notification for doctor
-            notification = {
-                "id": str(uuid.uuid4()),
-                "doctor_id": doctor_id,
-                "patient_id": patient_id,
-                "patient_name": patient_name,
-                "clinical_report": doctor_report,
-                "urgency": urgency,
-                "transcript": transcript,
-                "timestamp": datetime.utcnow().isoformat(),
-                "read": False,
-            }
-            mental_health_notifications.append(notification)
+            # Save notification to Node.js backend (MongoDB)
+            try:
+                async with httpx.AsyncClient(timeout=10) as client:
+                    await client.post(
+                        f"{BACKEND_URL}/mental-health/notifications",
+                        json={
+                            "doctorId": doctor_id,
+                            "patientId": patient_id,
+                            "patientName": patient_name,
+                            "clinicalReport": doctor_report,
+                            "urgency": urgency,
+                            "transcript": transcript,
+                        },
+                    )
+            except Exception as notif_err:
+                print(f"Warning: Failed to save notification to backend: {notif_err}")
 
         return {
             "user_response": user_response.content,
@@ -309,24 +315,6 @@ Format as a professional clinical note. Respond in English."""
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# ── Mental Health Notifications ─────────────────────────────────────────────
-
-@app.get("/mental-health/notifications/{doctor_id}")
-async def get_mental_health_notifications(doctor_id: str):
-    notifs = [n for n in mental_health_notifications if n["doctor_id"] == doctor_id]
-    notifs.sort(key=lambda x: x["timestamp"], reverse=True)
-    return {"notifications": notifs}
-
-
-@app.put("/mental-health/notifications/{notification_id}/read")
-async def mark_notification_read(notification_id: str):
-    for n in mental_health_notifications:
-        if n["id"] == notification_id:
-            n["read"] = True
-            return {"message": "Marked as read"}
-    raise HTTPException(status_code=404, detail="Notification not found")
 
 
 # ── Rewards ─────────────────────────────────────────────────────────────────

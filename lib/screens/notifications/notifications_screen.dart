@@ -124,8 +124,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           _expandedMental.add(index);
                         }
                       });
-                      if (notif['id'] != null && notif['read'] != true) {
-                        MentalHealthService.markAsRead(notif['id']);
+                      final notifId = notif['_id'] ?? notif['id'];
+                      if (notifId != null && notif['read'] != true) {
+                        MentalHealthService.markAsRead(notifId);
                         setState(() => notif['read'] = true);
                       }
                     },
@@ -157,7 +158,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  notif['patient_name'] ?? 'Patient',
+                                  notif['patientName'] ?? notif['patient_name'] ?? 'Patient',
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -188,7 +189,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            notif['clinical_report'] ??
+                            notif['clinicalReport'] ??
+                                notif['clinical_report'] ??
                                 notif['summary'] ??
                                 'Mental health check-in',
                             style: TextStyle(

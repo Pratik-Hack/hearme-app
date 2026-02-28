@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hearme/core/theme/app_theme.dart';
@@ -15,65 +16,136 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _textFadeAnimation;
-  late Animation<double> _taglineFadeAnimation;
+    with TickerProviderStateMixin {
+  late AnimationController _mainController;
+  late AnimationController _pulseController;
+
+  // Logo animations
+  late Animation<double> _logoScale;
+  late Animation<double> _logoFade;
+  late Animation<double> _glowAnimation;
+
+  // Heart icon beat
+  late Animation<double> _heartBeat;
+
+  // Text animations
+  late Animation<double> _titleFade;
+  late Animation<Offset> _titleSlide;
+  late Animation<double> _taglineFade;
+  late Animation<Offset> _taglineSlide;
+
+  // Loading dot animation
+  late Animation<double> _dotsAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    // Main entrance animation
+    _mainController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 2500),
     );
 
-    // Logo scales up with elastic curve
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Continuous pulse for the heart
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    // Logo: fade in + scale with gentle overshoot
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
+        parent: _mainController,
+        curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
       ),
     );
 
-    // Logo fades in quickly
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _logoScale = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.25, curve: Curves.easeIn),
+        parent: _mainController,
+        curve: const Interval(0.0, 0.45, curve: Curves.elasticOut),
       ),
     );
 
-    // App name fades in after logo
-    _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Glow grows around the logo
+    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.35, 0.6, curve: Curves.easeIn),
+        parent: _mainController,
+        curve: const Interval(0.2, 0.55, curve: Curves.easeOut),
       ),
     );
 
-    // Tagline fades in last
-    _taglineFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Heart beat pulse (continuous after entrance)
+    _heartBeat = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.5, 0.75, curve: Curves.easeIn),
+        parent: _pulseController,
+        curve: Curves.easeInOut,
       ),
     );
 
-    _controller.forward();
+    // Title: fade + slide up
+    _titleFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.4, 0.65, curve: Curves.easeOut),
+      ),
+    );
+
+    _titleSlide = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.4, 0.7, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Tagline: fade + slide up (delayed)
+    _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.55, 0.8, curve: Curves.easeOut),
+      ),
+    );
+
+    _taglineSlide = Tween<Offset>(
+      begin: const Offset(0, 0.4),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.55, 0.85, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Loading dots
+    _dotsAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mainController,
+        curve: const Interval(0.75, 1.0, curve: Curves.easeIn),
+      ),
+    );
+
+    _mainController.forward();
+
+    // Start heartbeat pulse after logo appears
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) {
+        _pulseController.repeat(reverse: true);
+      }
+    });
+
     _initAndNavigate();
   }
 
   Future<void> _initAndNavigate() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
-    // Run session restore and minimum splash time in parallel
     final results = await Future.wait([
       auth.tryRestoreSession(),
-      Future.delayed(const Duration(milliseconds: 2400)),
+      Future.delayed(const Duration(milliseconds: 2800)),
     ]);
 
     final hasSession = results[0] as bool;
@@ -93,7 +165,7 @@ class _SplashScreenState extends State<SplashScreen>
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => destination,
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: const Duration(milliseconds: 600),
         transitionsBuilder: (_, animation, __, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -103,7 +175,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _mainController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -121,86 +194,144 @@ class _SplashScreenState extends State<SplashScreen>
               : AppTheme.backgroundGradient,
         ),
         child: AnimatedBuilder(
-          animation: _controller,
+          animation: Listenable.merge([_mainController, _pulseController]),
           builder: (context, _) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      width: 130,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: AppTheme.orangeGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryOrange
-                                .withValues(alpha: 0.4),
-                            blurRadius: 40,
-                            offset: const Offset(0, 12),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.favorite_rounded,
-                        color: Colors.white,
-                        size: 65,
-                      ),
-                    ),
-                  ),
-                ),
+                const Spacer(flex: 3),
 
-                const SizedBox(height: 28),
+                // Logo with glow + heartbeat
+                _buildLogo(isDark),
+
+                const SizedBox(height: 32),
 
                 // App name
-                FadeTransition(
-                  opacity: _textFadeAnimation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(0.35, 0.65, curve: Curves.easeOut),
-                    )),
+                SlideTransition(
+                  position: _titleSlide,
+                  child: FadeTransition(
+                    opacity: _titleFade,
                     child: Text(
                       'HearMe',
                       style: TextStyle(
-                        fontSize: 42,
+                        fontSize: 44,
                         fontWeight: FontWeight.w800,
                         color: isDark
                             ? AppTheme.darkTextLight
                             : AppTheme.textDark,
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
 
                 // Tagline
-                FadeTransition(
-                  opacity: _taglineFadeAnimation,
-                  child: Text(
-                    'Your Mental Health Companion',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.primaryOrange,
+                SlideTransition(
+                  position: _taglineSlide,
+                  child: FadeTransition(
+                    opacity: _taglineFade,
+                    child: Text(
+                      'Your Mental Health Companion',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.primaryOrange.withValues(alpha: 0.9),
+                        letterSpacing: 0.3,
+                      ),
                     ),
                   ),
                 ),
+
+                const Spacer(flex: 2),
+
+                // Loading indicator
+                FadeTransition(
+                  opacity: _dotsAnimation,
+                  child: _buildLoadingDots(isDark),
+                ),
+
+                const SizedBox(height: 48),
               ],
             );
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildLogo(bool isDark) {
+    return FadeTransition(
+      opacity: _logoFade,
+      child: Transform.scale(
+        scale: _logoScale.value,
+        child: Container(
+          width: 140,
+          height: 140,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: AppTheme.orangeGradient,
+            boxShadow: [
+              // Animated glow
+              BoxShadow(
+                color: AppTheme.primaryOrange
+                    .withValues(alpha: 0.15 + (_glowAnimation.value * 0.3)),
+                blurRadius: 20 + (_glowAnimation.value * 40),
+                spreadRadius: _glowAnimation.value * 10,
+              ),
+              // Subtle depth shadow
+              BoxShadow(
+                color: const Color(0xFFFF6B35).withValues(alpha: 0.25),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Transform.scale(
+              scale: _heartBeat.value,
+              child: const Icon(
+                Icons.favorite_rounded,
+                color: Colors.white,
+                size: 68,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingDots(bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (index) {
+        // Stagger each dot
+        final delay = index * 0.15;
+        final progress = (_mainController.value - 0.75 - delay)
+            .clamp(0.0, 0.25) / 0.25;
+        final bounce = sin(progress * pi * 2 +
+            (_pulseController.value * pi * 2) +
+            (index * pi * 0.6));
+        final dotScale = 0.6 + (0.4 * ((bounce + 1) / 2));
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Transform.scale(
+            scale: dotScale,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.primaryOrange
+                    .withValues(alpha: 0.4 + (0.5 * ((bounce + 1) / 2))),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 }

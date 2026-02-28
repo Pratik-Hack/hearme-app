@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:hearme/core/theme/app_theme.dart';
 import 'package:hearme/core/theme/theme_provider.dart';
-import 'package:hearme/core/providers/auth_provider.dart';
 import 'package:hearme/core/widgets/glass_card.dart';
 import 'package:hearme/services/api_service.dart';
 import 'package:hearme/services/mental_health_service.dart';
@@ -56,15 +55,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
 
   Future<void> _loadAlerts() async {
     try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      final doctorId = auth.user?.id ?? '';
-      final allNotifs = await MentalHealthService.getNotifications(doctorId);
-      // Filter notifications for this patient
-      final patientNotifs = allNotifs
-          .where((n) => n['patient_id'] == widget.patientId)
-          .toList();
+      final notifs =
+          await MentalHealthService.getPatientNotifications(widget.patientId);
       setState(() {
-        _alerts = patientNotifs;
+        _alerts = notifs;
         _loadingAlerts = false;
       });
     } catch (_) {
@@ -201,7 +195,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           final alert = _alerts[index];
           final isExpanded = _expandedAlerts.contains(index);
           final urgency = alert['urgency'] ?? 'low';
-          final timestamp = alert['timestamp'];
+          final timestamp = alert['createdAt'] ?? alert['timestamp'];
           String dateStr = '';
           if (timestamp != null) {
             final date = DateTime.tryParse(timestamp);
@@ -221,8 +215,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                     _expandedAlerts.add(index);
                   }
                 });
-                if (alert['id'] != null && alert['read'] != true) {
-                  MentalHealthService.markAsRead(alert['id']);
+                final alertId = alert['_id'] ?? alert['id'];
+                if (alertId != null && alert['read'] != true) {
+                  MentalHealthService.markAsRead(alertId);
                   setState(() => alert['read'] = true);
                 }
               },
@@ -274,7 +269,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      alert['clinical_report'] ??
+                      alert['clinicalReport'] ??
+                          alert['clinical_report'] ??
                           alert['summary'] ??
                           'Mental health check-in',
                       style: TextStyle(
