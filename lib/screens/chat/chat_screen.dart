@@ -85,7 +85,8 @@ class _ChatScreenState extends State<ChatScreen> {
         _isTyping = false;
         _messages.add({
           'role': 'bot',
-          'content': 'Sorry, something went wrong. Please try again.',
+          'content':
+              'Sorry, I couldn\'t respond right now. The server may be starting up — please try again in a moment.',
         });
       });
     }

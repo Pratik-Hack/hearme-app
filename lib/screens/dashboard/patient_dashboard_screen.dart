@@ -14,6 +14,7 @@ import 'package:hearme/screens/chat/chat_bottom_sheet.dart';
 import 'package:hearme/screens/linking/my_code_screen.dart';
 import 'package:hearme/screens/linking/link_doctor_screen.dart';
 import 'package:hearme/screens/rewards/rewards_screen.dart';
+import 'package:hearme/screens/rewards/redeemed_rewards_screen.dart';
 import 'package:hearme/screens/welcome/welcome_screen.dart';
 
 class PatientDashboardScreen extends StatelessWidget {
@@ -376,6 +377,28 @@ class PatientDashboardScreen extends StatelessWidget {
                   if (code != null) localeProvider.setLanguage(code);
                 },
               ),
+            ),
+
+            // Redeemed Rewards
+            ListTile(
+              leading: Icon(
+                Icons.card_giftcard_rounded,
+                color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+              ),
+              title: Text(
+                'My Rewards',
+                style: TextStyle(
+                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const RedeemedRewardsScreen()),
+                );
+              },
             ),
 
             const Spacer(),

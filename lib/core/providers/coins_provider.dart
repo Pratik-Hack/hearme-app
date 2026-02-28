@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hearme/services/api_service.dart';
+import 'package:hearme/core/constants/api_constants.dart';
 
 class CoinsProvider extends ChangeNotifier {
   static const String _coinsKey = 'mind_coins';
@@ -9,6 +11,7 @@ class CoinsProvider extends ChangeNotifier {
   static const String _lastCheckinKey = 'last_checkin';
   static const String _lastChatRewardKey = 'last_chat_reward';
   static const String _chatRewardCountKey = 'chat_reward_count';
+  static const String _dailyTasksKey = 'daily_tasks';
 
   int _coins = 0;
   int _totalSessions = 0;
@@ -18,6 +21,11 @@ class CoinsProvider extends ChangeNotifier {
   String? _lastChatReward;
   int _chatRewardCount = 0;
 
+  // Daily task tracking
+  bool _mindSpaceDone = false;
+  bool _chatDone = false;
+  String? _dailyTaskDate;
+
   CoinsProvider() {
     _loadFromStorage();
   }
@@ -26,6 +34,8 @@ class CoinsProvider extends ChangeNotifier {
   int get totalSessions => _totalSessions;
   int get currentStreak => _currentStreak;
   int get bestStreak => _bestStreak;
+  bool get mindSpaceDone => _mindSpaceDone;
+  bool get chatDone => _chatDone;
 
   bool get checkedInToday {
     if (_lastCheckin == null) return false;
@@ -48,7 +58,59 @@ class CoinsProvider extends ChangeNotifier {
     _lastCheckin = prefs.getString(_lastCheckinKey);
     _lastChatReward = prefs.getString(_lastChatRewardKey);
     _chatRewardCount = prefs.getInt(_chatRewardCountKey) ?? 0;
+
+    // Load daily tasks
+    final taskData = prefs.getString(_dailyTasksKey);
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (taskData != null && taskData.startsWith(today)) {
+      final parts = taskData.split('|');
+      _dailyTaskDate = parts[0];
+      _mindSpaceDone = parts.length > 1 && parts[1] == '1';
+      _chatDone = parts.length > 2 && parts[2] == '1';
+    } else {
+      _dailyTaskDate = today;
+      _mindSpaceDone = false;
+      _chatDone = false;
+    }
+
     notifyListeners();
+  }
+
+  /// Load stats from MongoDB (call after login)
+  Future<void> loadFromServer() async {
+    try {
+      final data = await ApiService.get(ApiConstants.rewardsStats);
+      if (data['coins'] != null) {
+        _coins = data['coins'] ?? _coins;
+        _totalSessions = data['totalSessions'] ?? _totalSessions;
+        _currentStreak = data['currentStreak'] ?? _currentStreak;
+        _bestStreak = data['bestStreak'] ?? _bestStreak;
+        _lastCheckin = data['lastCheckin'];
+        _lastChatReward = data['lastChatReward'];
+        _chatRewardCount = data['chatRewardCount'] ?? 0;
+        await _saveToStorage();
+        notifyListeners();
+      }
+    } catch (_) {
+      // Use local cache if server unreachable
+    }
+  }
+
+  /// Sync stats to MongoDB
+  Future<void> _syncToServer() async {
+    try {
+      await ApiService.put(ApiConstants.rewardsStats, body: {
+        'coins': _coins,
+        'totalSessions': _totalSessions,
+        'currentStreak': _currentStreak,
+        'bestStreak': _bestStreak,
+        'lastCheckin': _lastCheckin,
+        'lastChatReward': _lastChatReward,
+        'chatRewardCount': _chatRewardCount,
+      });
+    } catch (_) {
+      // Silently fail — local cache is primary
+    }
   }
 
   Future<int> addCoins(int amount) async {
@@ -80,7 +142,12 @@ class CoinsProvider extends ChangeNotifier {
     _totalSessions++;
     _lastCheckin = today;
 
+    // Mark MindSpace daily task as done
+    _checkDailyTaskDate();
+    _mindSpaceDone = true;
+
     await _saveToStorage();
+    _syncToServer();
     notifyListeners();
     return totalEarned;
   }
@@ -98,7 +165,12 @@ class CoinsProvider extends ChangeNotifier {
     _chatRewardCount++;
     _coins += 1;
 
+    // Mark chat daily task as done
+    _checkDailyTaskDate();
+    _chatDone = true;
+
     await _saveToStorage();
+    _syncToServer();
     notifyListeners();
     return 1;
   }
@@ -107,8 +179,18 @@ class CoinsProvider extends ChangeNotifier {
     if (_coins < amount) return false;
     _coins -= amount;
     await _saveToStorage();
+    _syncToServer();
     notifyListeners();
     return true;
+  }
+
+  void _checkDailyTaskDate() {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (_dailyTaskDate != today) {
+      _dailyTaskDate = today;
+      _mindSpaceDone = false;
+      _chatDone = false;
+    }
   }
 
   Future<void> _saveToStorage() async {
@@ -124,5 +206,10 @@ class CoinsProvider extends ChangeNotifier {
       await prefs.setString(_lastChatRewardKey, _lastChatReward!);
     }
     await prefs.setInt(_chatRewardCountKey, _chatRewardCount);
+
+    // Save daily tasks
+    final taskData =
+        '${_dailyTaskDate ?? ''}|${_mindSpaceDone ? '1' : '0'}|${_chatDone ? '1' : '0'}';
+    await prefs.setString(_dailyTasksKey, taskData);
   }
 }

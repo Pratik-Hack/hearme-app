@@ -7,21 +7,28 @@ class ChatService {
   static Future<String> sendMessage(String message,
       {String? sessionId, String language = 'en'}) async {
     final url = Uri.parse('${ApiConstants.chatbotBaseUrl}/chat');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'message': message,
-        'session_id': sessionId ?? 'default',
-        'language': language,
-      }),
-    );
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'message': message,
+              'session_id': sessionId ?? 'default',
+              'language': language,
+            }),
+          )
+          .timeout(const Duration(seconds: 120));
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['response'] ?? '';
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'] ?? '';
+      }
+      throw Exception('Server error: ${response.statusCode}');
+    } on TimeoutException {
+      throw Exception(
+          'The server is waking up. Please try again in a moment.');
     }
-    throw Exception('Failed to get response');
   }
 
   static Stream<String> sendMessageStream(String message,

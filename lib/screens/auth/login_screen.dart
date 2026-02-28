@@ -6,6 +6,7 @@ import 'package:hearme/core/theme/theme_provider.dart';
 import 'package:hearme/core/locale/app_strings.dart';
 import 'package:hearme/core/locale/locale_provider.dart';
 import 'package:hearme/core/providers/auth_provider.dart';
+import 'package:hearme/core/providers/coins_provider.dart';
 import 'package:hearme/core/widgets/animated_button.dart';
 import 'package:hearme/core/widgets/auth_text_field.dart';
 import 'package:hearme/core/widgets/theme_toggle_button.dart';
@@ -47,6 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       ApiService.setToken(auth.token);
+      // Load rewards data from server
+      final coinsProvider =
+          Provider.of<CoinsProvider>(context, listen: false);
+      coinsProvider.loadFromServer();
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(

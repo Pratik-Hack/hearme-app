@@ -118,12 +118,25 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
       final coins = Provider.of<CoinsProvider>(context, listen: false);
       final earned = await coins.addCoins(10);
 
+      final responseText =
+          result['user_response'] ?? result['response'] ?? 'Analysis complete.';
+
       setState(() {
         _isProcessing = false;
         _hasResult = true;
-        _response = result['user_response'] ?? result['response'] ?? 'Analysis complete.';
+        _response = responseText;
         _coinsEarned = earned;
       });
+
+      // Save MindSpace record to MongoDB
+      try {
+        await ApiService.post(ApiConstants.rewardsMindSpace, body: {
+          'response': responseText,
+          'transcript': result['transcript'] ?? '',
+          'urgency': result['urgency'] ?? 'low',
+          'coinsEarned': earned,
+        });
+      } catch (_) {}
     } catch (e) {
       setState(() {
         _isProcessing = false;
@@ -163,221 +176,254 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
               : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
-          child: Padding(
+          child: _hasResult && _response != null
+              ? _buildResultView(isDark, lang)
+              : _buildRecordingView(isDark, lang),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecordingView(bool isDark, String lang) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingLarge),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Status text
+            Text(
+              _isRecording
+                  ? AppStrings.get('listening_heart', lang)
+                  : _isProcessing
+                      ? AppStrings.get('analyzing', lang)
+                      : AppStrings.get('how_was_your_day', lang),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+              ),
+              textAlign: TextAlign.center,
+            ).animate().fadeIn(),
+
+            const SizedBox(height: 8),
+
+            Text(
+              _isRecording
+                  ? '${_countdown}s'
+                  : _isProcessing
+                      ? AppStrings.get('give_moment', lang)
+                      : AppStrings.get('tap_mic', lang),
+              style: TextStyle(
+                fontSize: _isRecording ? 32 : 15,
+                fontWeight: _isRecording ? FontWeight.w800 : FontWeight.w400,
+                color: _isRecording
+                    ? AppTheme.primaryOrange
+                    : (isDark ? AppTheme.darkTextGray : AppTheme.textGray),
+              ),
+            ).animate().fadeIn(),
+
+            const SizedBox(height: 48),
+
+            // Mic button
+            GestureDetector(
+              onTap: _isProcessing
+                  ? null
+                  : (_isRecording ? _stopRecording : _startRecording),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: _isRecording ? 100 : 88,
+                height: _isRecording ? 100 : 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: _isRecording
+                      ? const LinearGradient(
+                          colors: [Color(0xFFFF5252), Color(0xFFFF1744)],
+                        )
+                      : _isProcessing
+                          ? LinearGradient(
+                              colors: [
+                                Colors.grey.shade400,
+                                Colors.grey.shade500,
+                              ],
+                            )
+                          : const LinearGradient(
+                              colors: [Color(0xFF7C4DFF), Color(0xFF536DFE)],
+                            ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_isRecording
+                              ? const Color(0xFFFF5252)
+                              : const Color(0xFF7C4DFF))
+                          .withValues(alpha: 0.4),
+                      blurRadius: _isRecording ? 30 : 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _isRecording
+                      ? Icons.stop_rounded
+                      : _isProcessing
+                          ? Icons.hourglass_top_rounded
+                          : Icons.mic_rounded,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+            )
+                .animate(
+                  onPlay:
+                      _isRecording ? (c) => c.repeat(reverse: true) : null,
+                )
+                .scale(
+                  begin: const Offset(1, 1),
+                  end: _isRecording
+                      ? const Offset(1.1, 1.1)
+                      : const Offset(1, 1),
+                  duration: 800.ms,
+                ),
+
+            const SizedBox(height: 48),
+
+            // Subtitle
+            if (!_isRecording && !_isProcessing)
+              Text(
+                AppStrings.get('share_your_mind', lang),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                ),
+                textAlign: TextAlign.center,
+              ).animate().fadeIn(delay: 300.ms),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultView(bool isDark, String lang) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
+      child: Column(
+        children: [
+          // Coins earned
+          if (_coinsEarned > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                AppStrings.format(
+                    'coins_earned', lang, {'coins': '$_coinsEarned'}),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ).animate().fadeIn().scale(begin: const Offset(0.8, 0.8)),
+
+          const SizedBox(height: AppTheme.spacingMedium),
+
+          // Response card
+          GlassCard(
             padding: const EdgeInsets.all(AppTheme.spacingLarge),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Spacer(),
-
-                // Status text
-                Text(
-                  _isRecording
-                      ? AppStrings.get('listening_heart', lang)
-                      : _isProcessing
-                          ? AppStrings.get('analyzing', lang)
-                          : _hasResult
-                              ? AppStrings.get('mindbot', lang)
-                              : AppStrings.get('how_was_your_day', lang),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
-                  ),
-                  textAlign: TextAlign.center,
-                ).animate().fadeIn(),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  _isRecording
-                      ? '${_countdown}s'
-                      : _isProcessing
-                          ? AppStrings.get('give_moment', lang)
-                          : _hasResult
-                              ? ''
-                              : AppStrings.get('tap_mic', lang),
-                  style: TextStyle(
-                    fontSize: _isRecording ? 32 : 15,
-                    fontWeight:
-                        _isRecording ? FontWeight.w800 : FontWeight.w400,
-                    color: _isRecording
-                        ? AppTheme.primaryOrange
-                        : (isDark ? AppTheme.darkTextGray : AppTheme.textGray),
-                  ),
-                ).animate().fadeIn(),
-
-                const SizedBox(height: AppTheme.spacingXXLarge),
-
-                // Mic button
-                if (!_hasResult)
-                  GestureDetector(
-                    onTap: _isProcessing
-                        ? null
-                        : (_isRecording ? _stopRecording : _startRecording),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      width: _isRecording ? 100 : 88,
-                      height: _isRecording ? 100 : 88,
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: _isRecording
-                            ? const LinearGradient(
-                                colors: [Color(0xFFFF5252), Color(0xFFFF1744)],
-                              )
-                            : _isProcessing
-                                ? LinearGradient(
-                                    colors: [Colors.grey.shade400, Colors.grey.shade500],
-                                  )
-                                : const LinearGradient(
-                                    colors: [Color(0xFF7C4DFF), Color(0xFF536DFE)],
-                                  ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (_isRecording
-                                    ? const Color(0xFFFF5252)
-                                    : const Color(0xFF7C4DFF))
-                                .withValues(alpha: 0.4),
-                            blurRadius: _isRecording ? 30 : 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF7C4DFF),
+                            Color(0xFF536DFE),
+                          ],
+                        ),
                       ),
-                      child: Icon(
-                        _isRecording
-                            ? Icons.stop_rounded
-                            : _isProcessing
-                                ? Icons.hourglass_top_rounded
-                                : Icons.mic_rounded,
+                      child: const Icon(
+                        Icons.psychology_rounded,
                         color: Colors.white,
-                        size: 40,
+                        size: 20,
                       ),
                     ),
-                  )
-                      .animate(
-                        onPlay: _isRecording ? (c) => c.repeat(reverse: true) : null,
-                      )
-                      .scale(
-                        begin: const Offset(1, 1),
-                        end: _isRecording
-                            ? const Offset(1.1, 1.1)
-                            : const Offset(1, 1),
-                        duration: 800.ms,
-                      ),
-
-                const Spacer(),
-
-                // Result card
-                if (_hasResult && _response != null)
-                  Expanded(
-                    flex: 3,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          // Coins earned
-                          if (_coinsEarned > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                AppStrings.format(
-                                    'coins_earned', lang, {'coins': '$_coinsEarned'}),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            )
-                                .animate()
-                                .fadeIn()
-                                .scale(begin: const Offset(0.8, 0.8)),
-
-                          const SizedBox(height: AppTheme.spacingMedium),
-
-                          // Response card
-                          GlassCard(
-                            padding: const EdgeInsets.all(AppTheme.spacingLarge),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 36,
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            Color(0xFF7C4DFF),
-                                            Color(0xFF536DFE),
-                                          ],
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.psychology_rounded,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      AppStrings.get('mindbot', lang),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? AppTheme.darkTextLight
-                                            : AppTheme.textDark,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _response!,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    height: 1.6,
-                                    color: isDark
-                                        ? AppTheme.darkTextGray
-                                        : AppTheme.textGray,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
-                        ],
+                    const SizedBox(width: 10),
+                    Text(
+                      AppStrings.get('mindbot', lang),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.darkTextLight
+                            : AppTheme.textDark,
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _response!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: isDark
+                        ? AppTheme.darkTextGray
+                        : AppTheme.textGray,
                   ),
-
-                if (!_hasResult) const Spacer(),
-
-                // Subtitle
-                if (!_hasResult && !_isRecording && !_isProcessing)
-                  Text(
-                    AppStrings.get('share_your_mind', lang),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
-                    ),
-                    textAlign: TextAlign.center,
-                  ).animate().fadeIn(delay: 300.ms),
-
-                const SizedBox(height: AppTheme.spacingLarge),
+                ),
               ],
             ),
-          ),
-        ),
+          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
+
+          const SizedBox(height: AppTheme.spacingLarge),
+
+          // Record again button
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _hasResult = false;
+                _response = null;
+                _coinsEarned = 0;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C4DFF), Color(0xFF536DFE)],
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.mic_rounded, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppStrings.get('tap_mic', lang),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate().fadeIn(delay: 400.ms),
+        ],
       ),
     );
   }

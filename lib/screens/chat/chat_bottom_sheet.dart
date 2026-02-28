@@ -96,7 +96,8 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
         _isTyping = false;
         _messages.add({
           'role': 'bot',
-          'content': 'Sorry, something went wrong. Please try again.',
+          'content':
+              'Sorry, I couldn\'t respond right now. The server may be starting up — please try again in a moment.',
         });
       });
     }
@@ -215,10 +216,11 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
               ),
 
               // Typing indicator
-              if (_isTyping && _messages.last['content'] == '')
+              if (_isTyping)
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppTheme.spacingMedium,
+                    vertical: 4,
                   ),
                   child: _buildTypingIndicator(isDark),
                 ),

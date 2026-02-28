@@ -8,6 +8,8 @@ import 'package:hearme/core/locale/locale_provider.dart';
 import 'package:hearme/core/providers/coins_provider.dart';
 import 'package:hearme/core/widgets/glass_card.dart';
 import 'package:hearme/services/mental_health_service.dart';
+import 'package:hearme/services/api_service.dart';
+import 'package:hearme/core/constants/api_constants.dart';
 import 'package:hearme/screens/rewards/reward_content_screen.dart';
 
 class RewardsScreen extends StatelessWidget {
@@ -144,9 +146,9 @@ class RewardsScreen extends StatelessWidget {
 
               const SizedBox(height: AppTheme.spacingLarge),
 
-              // Ways to Earn
+              // Daily Tasks
               Text(
-                AppStrings.get('ways_to_earn', lang),
+                'Daily Tasks',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -156,34 +158,51 @@ class RewardsScreen extends StatelessWidget {
 
               const SizedBox(height: AppTheme.spacingMedium),
 
-              _buildEarnItem(
+              _buildDailyTask(
                 AppStrings.get('daily_checkin', lang),
                 '+10',
                 Icons.mic_rounded,
                 const Color(0xFF7C4DFF),
                 isDark,
+                coins.mindSpaceDone,
               ).animate().fadeIn(delay: 350.ms),
+              _buildDailyTask(
+                AppStrings.get('chat_with_bot', lang),
+                '+5/day',
+                Icons.smart_toy_rounded,
+                const Color(0xFF4ECDC4),
+                isDark,
+                coins.chatDone,
+              ).animate().fadeIn(delay: 400.ms),
+
+              const SizedBox(height: AppTheme.spacingLarge),
+
+              // Ways to Earn
+              Text(
+                AppStrings.get('ways_to_earn', lang),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                ),
+              ).animate().fadeIn(delay: 450.ms),
+
+              const SizedBox(height: AppTheme.spacingMedium),
+
               _buildEarnItem(
                 AppStrings.get('streak_bonus_3', lang),
                 '+15',
                 Icons.local_fire_department_rounded,
                 const Color(0xFFFF6B35),
                 isDark,
-              ).animate().fadeIn(delay: 400.ms),
+              ).animate().fadeIn(delay: 500.ms),
               _buildEarnItem(
                 AppStrings.get('streak_bonus_7', lang),
                 '+50',
                 Icons.emoji_events_rounded,
                 const Color(0xFFFFD700),
                 isDark,
-              ).animate().fadeIn(delay: 450.ms),
-              _buildEarnItem(
-                AppStrings.get('chat_with_bot', lang),
-                '+5/day',
-                Icons.smart_toy_rounded,
-                const Color(0xFF4ECDC4),
-                isDark,
-              ).animate().fadeIn(delay: 500.ms),
+              ).animate().fadeIn(delay: 550.ms),
 
               const SizedBox(height: AppTheme.spacingLarge),
 
@@ -283,6 +302,73 @@ class RewardsScreen extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDailyTask(
+    String title,
+    String coins,
+    IconData icon,
+    Color color,
+    bool isDark,
+    bool completed,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: completed
+                    ? const Color(0xFF4CAF50).withValues(alpha: 0.15)
+                    : color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: completed
+                  ? const Icon(Icons.check_rounded,
+                      color: Color(0xFF4CAF50), size: 20)
+                  : Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                  decoration:
+                      completed ? TextDecoration.lineThrough : null,
+                ),
+              ),
+            ),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                gradient: completed
+                    ? const LinearGradient(
+                        colors: [Color(0xFF4CAF50), Color(0xFF388E3C)])
+                    : const LinearGradient(
+                        colors: [Color(0xFFFFD700), Color(0xFFFFA000)]),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                completed ? 'Done' : coins,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -541,6 +627,18 @@ class RewardsScreen extends StatelessWidget {
         language: lang,
       );
 
+      final content = result['content'] ?? 'Content generated.';
+
+      // Save redeemed reward to MongoDB
+      try {
+        await ApiService.post(ApiConstants.rewardsRedeemed, body: {
+          'rewardType': rewardType,
+          'title': title,
+          'content': content,
+          'cost': cost,
+        });
+      } catch (_) {}
+
       if (context.mounted) {
         Navigator.pop(context); // Close loading dialog
         Navigator.push(
@@ -548,7 +646,7 @@ class RewardsScreen extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => RewardContentScreen(
               title: title,
-              content: result['content'] ?? 'Content generated.',
+              content: content,
               icon: icon,
               color: color,
             ),
